@@ -74,7 +74,7 @@ public class DecathlonProcessorTest {
                         list(
                                 new Range(1, 2), new Range(1, 2), new Range(3, 3),
                                 new Range(4, 4), new Range(5, 7), new Range(5, 7),
-                                new Range(7, 7), new Range(8, 9), new Range(8, 9)
+                                new Range(5, 7), new Range(8, 9), new Range(8, 9)
                         )
                 },
 

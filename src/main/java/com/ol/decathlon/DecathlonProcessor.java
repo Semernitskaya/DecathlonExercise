@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import static com.ol.decathlon.EventType.*;
+import static com.ol.decathlon.MeasurementUtil.minuteToSecond;
 import static java.lang.String.format;
 import static java.util.Collections.sort;
 import static java.util.Comparator.comparingInt;
@@ -91,11 +92,11 @@ public class DecathlonProcessor {
         return Optional.empty();
     }
 
-//    TODO: add test
-    private BigDecimal getSeconds(String str) {
+    BigDecimal getSeconds(String str) {
         int i = str.indexOf(".");
         int minutes = Integer.parseInt(str.substring(0, i));
-        return new BigDecimal(str.substring(i + 1).trim()).add(new BigDecimal(minutes * 60));
+        return new BigDecimal(str.substring(i + 1))
+                .add(new BigDecimal(minuteToSecond(minutes)));
     }
 
     boolean isValidParameterFile(String parameterFile) {
@@ -104,29 +105,26 @@ public class DecathlonProcessor {
                 && new File(parameterFile).exists();
     }
 
-
-    //TODO: fix me
     void fillPlaces(List<ResultRecord> records) {
         int minPlace = 1;
-        int maxPlace = 1;
         int startIndex = 0;
         int previousResult = -1;
         for (int i = 0; i < records.size(); i++) {
             ResultRecord record = records.get(i);
             if (record.getTotalResult() < previousResult) {
-                Range places = new Range(minPlace, Math.max(maxPlace - 1, minPlace));
+                int maxPlace = minPlace + i - startIndex - 1;
+                Range places = new Range(minPlace, maxPlace);
                 for (int j = startIndex; j < i; j++) {
                     records.get(j).setPlaces(places);
                 }
-                minPlace = maxPlace;
-                maxPlace = minPlace;
+                minPlace = maxPlace + 1;
                 startIndex = i;
-            } else {
-                maxPlace++;
             }
             previousResult = record.getTotalResult();
         }
-        Range places = new Range(minPlace, Math.max(maxPlace - 1, minPlace));
+
+        int maxPlace = minPlace + records.size() - startIndex - 1;
+        Range places = new Range(minPlace, maxPlace);
         for (int j = startIndex; j < records.size(); j++) {
             records.get(j).setPlaces(places);
         }

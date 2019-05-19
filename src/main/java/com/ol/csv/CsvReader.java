@@ -30,7 +30,7 @@ public class CsvReader {
     public void consumeAll(Consumer<String[]> consumer) throws IOException {
         try (Stream<String> lines = Files.lines(file.toPath())) {
             lines.skip(skipHeader ? 1 : 0)
-                    .map(line -> line.split(separator))
+                    .map(line -> line.trim().split(separator))
                     .forEach(consumer);
         }
     }
