@@ -7,9 +7,9 @@ public class MeasurementUtil {
 
     public static final int CENTIMETER_IN_METER = 100;
 
-    public static final int SECOND_IN_MINUTE =60;
+    public static final int SECOND_IN_MINUTE = 60;
 
-    private MeasurementUtil(){
+    private MeasurementUtil() {
 
     }
 

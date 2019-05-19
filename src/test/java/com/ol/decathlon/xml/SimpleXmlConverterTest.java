@@ -16,7 +16,6 @@ import static com.ol.decathlon.ResultRecordUtil.getResultRecord;
 /**
  * Created by Semernitskaya on 19.05.2019.
  */
-//TODO: different line endings !!!
 public class SimpleXmlConverterTest {
 
     public static final String EXPECTED_STRING = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +

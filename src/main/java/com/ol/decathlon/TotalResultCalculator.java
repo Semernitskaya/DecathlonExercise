@@ -21,15 +21,19 @@ public class TotalResultCalculator {
     }
 
     public int calculateTotalResult(ResultRecord resultRecord) {
-        return resultRecord.getResults().entrySet().stream().mapToInt(entry -> {
-            EventType eventType = entry.getKey();
-            BigDecimal bigDecimal = entry.getValue();
-            final double value = eventType.isUseCentimeters() ?
-                    meterToCentimeter(bigDecimal.doubleValue()) : bigDecimal.doubleValue();
-            Optional<ParameterRecord> parameterRecord = parameterCache.get(eventType);
-            return parameterRecord.map(r -> eventType.getFormula()
-                    .apply(r, value))
-                    .orElse(0);
-        }).sum();
+        return resultRecord.getResults()
+                .entrySet()
+                .stream()
+                .mapToInt(entry -> {
+                    EventType eventType = entry.getKey();
+                    BigDecimal bigDecimal = entry.getValue();
+                    final double value = eventType.isUseCentimeters() ?
+                            meterToCentimeter(bigDecimal.doubleValue()) : bigDecimal.doubleValue();
+                    Optional<ParameterRecord> parameterRecord = parameterCache.get(eventType);
+                    return parameterRecord.map(r -> eventType.getFormula()
+                            .apply(r, value))
+                            .orElse(0);
+                })
+                .sum();
     }
 }
