@@ -1,7 +1,5 @@
 package com.ol.decathlon;
 
-import java.math.BigDecimal;
-
 /**
  * Created by Semernitskaya on 19.05.2019.
  */

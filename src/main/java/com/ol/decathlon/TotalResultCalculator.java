@@ -1,5 +1,9 @@
 package com.ol.decathlon;
 
+import com.ol.decathlon.data.ResultRecord;
+import com.ol.decathlon.parameter.ParameterCache;
+import com.ol.decathlon.parameter.ParameterRecord;
+
 import java.math.BigDecimal;
 import java.util.Optional;
 

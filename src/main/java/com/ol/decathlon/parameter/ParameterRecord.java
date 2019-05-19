@@ -1,4 +1,4 @@
-package com.ol.decathlon;
+package com.ol.decathlon.parameter;
 
 /**
  * Created by Semernitskaya on 18.05.2019.

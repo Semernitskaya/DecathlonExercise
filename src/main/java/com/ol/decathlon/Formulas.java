@@ -1,6 +1,7 @@
 package com.ol.decathlon;
 
-import java.math.BigDecimal;
+import com.ol.decathlon.parameter.ParameterRecord;
+
 import java.util.function.BiFunction;
 
 import static java.lang.Math.pow;

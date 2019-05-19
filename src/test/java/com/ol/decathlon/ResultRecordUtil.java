@@ -1,5 +1,8 @@
 package com.ol.decathlon;
 
+import com.ol.decathlon.data.ResultRecord;
+import org.assertj.core.util.Maps;
+
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +15,12 @@ import static org.assertj.core.util.Maps.newHashMap;
 public class ResultRecordUtil {
 
     private ResultRecordUtil() {
+    }
+
+    public static ResultRecord getResultRecord(int totalResult) {
+        ResultRecord record = new ResultRecord("Name", org.testng.collections.Maps.newHashMap());
+        record.setTotalResult(totalResult);
+        return record;
     }
 
     public static ResultRecord getResultRecord(EventType eventType, double value) {

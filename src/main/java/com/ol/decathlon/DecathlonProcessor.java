@@ -1,20 +1,27 @@
 package com.ol.decathlon;
 
 import com.ol.csv.CsvReader;
-import com.ol.xml.SimpleXmlConverter;
+import com.ol.decathlon.data.Range;
+import com.ol.decathlon.data.ResultRecord;
+import com.ol.decathlon.data.ResultRecordsWrapper;
+import com.ol.decathlon.parameter.ParameterCache;
+import com.ol.decathlon.xml.SimpleXmlConverter;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static com.ol.decathlon.EventType.*;
 import static java.lang.String.format;
 import static java.util.Collections.sort;
+import static java.util.Comparator.comparingInt;
 import static java.util.logging.Level.WARNING;
 
 /**
@@ -24,26 +31,37 @@ public class DecathlonProcessor {
 
     private final static Logger LOG = Logger.getLogger(DecathlonProcessor.class.getName());
 
+    public static final String RESULTS_SEPARATOR = ";";
+
+    private final Comparator<ResultRecord> comparator = comparingInt(ResultRecord::getTotalResult);
+
     public void process(String inputFile, String outputFile, String parameterFile) {
         try {
             if (!isValidParameterFile(parameterFile)) {
                 LOG.info("Parameter file not found or invalid, using default");
-                parameterFile = "";
+                Path path = Paths.get(getClass().getClassLoader().getResource("parameters.csv").toURI());
+                parameterFile = path.toString();
             }
             ParameterCache parameterCache = new ParameterCache();
             parameterCache.initialize(parameterFile);
             TotalResultCalculator calculator = new TotalResultCalculator(parameterCache);
 
-            List<ResultRecord> resultRecords = new CsvReader(inputFile, "", false)
+            List<ResultRecord> resultRecords = new CsvReader(inputFile, RESULTS_SEPARATOR, false)
                     .readAll(strings -> getResultRecord(strings));
             resultRecords.forEach(record -> record.setTotalResult(calculator.calculateTotalResult(record)));
-            sort(resultRecords);
+            sort(resultRecords, comparator);
             fillPlaces(resultRecords);
 
-            String xmlString = new SimpleXmlConverter().convertToXmlString(resultRecords);
-            System.out.println(xmlString);
-        } catch (IOException e) {
+            String xmlString = new SimpleXmlConverter().convertToXmlString(new ResultRecordsWrapper(resultRecords));
+            writeToOutput(xmlString, outputFile);
+        } catch (IOException | URISyntaxException e) {
             LOG.log(WARNING, "Something went wrong while processing decathlon data", e);
+        }
+    }
+
+    private void writeToOutput(String xmlString, String outputFile) throws IOException {
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile))) {
+            writer.write(xmlString);
         }
     }
 
@@ -65,12 +83,19 @@ public class DecathlonProcessor {
             results.put(DISCUS_THROW, new BigDecimal(strings[i++]));
             results.put(POLE_VAULT, new BigDecimal(strings[i++]));
             results.put(JAVELIN_THROW, new BigDecimal(strings[i++]));
-            results.put(DISTANCE_1500_M, new BigDecimal(strings[i++]));
+            results.put(DISTANCE_1500_M, getSeconds(strings[i++]));
             return Optional.of(new ResultRecord(name, results));
         } catch (Exception e) {
             LOG.log(WARNING, format("Can't extract results from string %s", strings), e);
         }
         return Optional.empty();
+    }
+
+//    TODO: add test
+    private BigDecimal getSeconds(String str) {
+        int i = str.indexOf(".");
+        int minutes = Integer.parseInt(str.substring(0, i));
+        return new BigDecimal(str.substring(i + 1).trim()).add(new BigDecimal(minutes * 60));
     }
 
     boolean isValidParameterFile(String parameterFile) {
@@ -79,10 +104,32 @@ public class DecathlonProcessor {
                 && new File(parameterFile).exists();
     }
 
-    private static void fillPlaces(List<ResultRecord> records) {
-//        for (int i = 0; i < records.size(); i++) {
-//             = array[i];
-//
-//        }
+
+    //TODO: fix me
+    void fillPlaces(List<ResultRecord> records) {
+        int minPlace = 1;
+        int maxPlace = 1;
+        int startIndex = 0;
+        int previousResult = -1;
+        for (int i = 0; i < records.size(); i++) {
+            ResultRecord record = records.get(i);
+            if (record.getTotalResult() < previousResult) {
+                Range places = new Range(minPlace, Math.max(maxPlace - 1, minPlace));
+                for (int j = startIndex; j < i; j++) {
+                    records.get(j).setPlaces(places);
+                }
+                minPlace = maxPlace;
+                maxPlace = minPlace;
+                startIndex = i;
+            } else {
+                maxPlace++;
+            }
+            previousResult = record.getTotalResult();
+        }
+        Range places = new Range(minPlace, Math.max(maxPlace - 1, minPlace));
+        for (int j = startIndex; j < records.size(); j++) {
+            records.get(j).setPlaces(places);
+        }
+
     }
 }

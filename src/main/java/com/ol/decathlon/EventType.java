@@ -1,5 +1,7 @@
 package com.ol.decathlon;
 
+import com.ol.decathlon.parameter.ParameterRecord;
+
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;

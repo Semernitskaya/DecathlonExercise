@@ -1,6 +1,7 @@
-package com.ol.decathlon;
+package com.ol.decathlon.parameter;
 
 import com.ol.csv.CsvReader;
+import com.ol.decathlon.EventType;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -18,10 +19,12 @@ public class ParameterCache {
 
     private final static Logger LOG = Logger.getLogger(ParameterCache.class.getName());
 
+    public static final String PARAMETER_SEPARATOR = ";";
+
     private Map<EventType, ParameterRecord> typeParameterRecordMap = new HashMap<>();
 
     public void initialize(String parameterFile) throws IOException {
-        CsvReader reader = new CsvReader(parameterFile, "", true);
+        CsvReader reader = new CsvReader(parameterFile, PARAMETER_SEPARATOR, true);
         reader.consumeAll(strings -> {
             Optional<ParameterRecord> parameterRecord = getParameterRecord(strings);
             if (parameterRecord.isPresent()) {

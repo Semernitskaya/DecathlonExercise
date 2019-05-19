@@ -1,5 +1,8 @@
-package com.ol.decathlon;
+package com.ol.decathlon.parameter;
 
+import com.ol.decathlon.EventType;
+import com.ol.decathlon.parameter.ParameterCache;
+import com.ol.decathlon.parameter.ParameterRecord;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
