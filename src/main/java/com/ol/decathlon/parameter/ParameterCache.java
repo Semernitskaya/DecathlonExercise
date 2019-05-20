@@ -3,10 +3,9 @@ package com.ol.decathlon.parameter;
 import com.ol.csv.CsvReader;
 import com.ol.decathlon.EventType;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.io.*;
+import java.util.*;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,7 +23,9 @@ public class ParameterCache {
     private Map<EventType, ParameterRecord> typeParameterRecordMap = new HashMap<>();
 
     public void initialize(String parameterFile) throws IOException {
-        CsvReader reader = new CsvReader(parameterFile, PARAMETER_SEPARATOR, true);
+        CsvReader reader = isValidParameterFile(parameterFile) ?
+                new CsvReader(parameterFile, PARAMETER_SEPARATOR, true) :
+                new CsvReader(getInputStreamSupplier(), PARAMETER_SEPARATOR, true);
         reader.consumeAll(strings -> {
             Optional<ParameterRecord> parameterRecord = getParameterRecord(strings);
             if (parameterRecord.isPresent()) {
@@ -37,6 +38,17 @@ public class ParameterCache {
                     EventType.values().length,
                     typeParameterRecordMap.size()));
         }
+    }
+
+    private Supplier<InputStream> getInputStreamSupplier() {
+        LOG.info("Parameter file not found or invalid, using default");
+        return () -> ClassLoader.class.getResourceAsStream("/parameters.csv");
+    }
+
+    boolean isValidParameterFile(String parameterFile) {
+        return parameterFile != null
+                && !parameterFile.isEmpty()
+                && new File(parameterFile).exists();
     }
 
     Optional<EventType> getEventType(String[] strings) {

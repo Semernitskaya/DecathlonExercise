@@ -8,12 +8,9 @@ import com.ol.decathlon.parameter.ParameterCache;
 import com.ol.decathlon.xml.SimpleXmlConverter;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Logger;
@@ -38,11 +35,6 @@ public class DecathlonProcessor {
 
     public void process(String inputFile, String outputFile, String parameterFile) {
         try {
-            if (!isValidParameterFile(parameterFile)) {
-                LOG.info("Parameter file not found or invalid, using default");
-                Path path = Paths.get(getClass().getClassLoader().getResource("parameters.csv").toURI());
-                parameterFile = path.toString();
-            }
             ParameterCache parameterCache = new ParameterCache();
             parameterCache.initialize(parameterFile);
             TotalResultCalculator calculator = new TotalResultCalculator(parameterCache);
@@ -55,7 +47,7 @@ public class DecathlonProcessor {
 
             String xmlString = new SimpleXmlConverter().convertToXmlString(new ResultRecordsWrapper(resultRecords));
             writeToOutput(xmlString, outputFile);
-        } catch (IOException | URISyntaxException e) {
+        } catch (IOException  e) {
             LOG.log(WARNING, "Something went wrong while processing decathlon data", e);
         }
     }
@@ -97,12 +89,6 @@ public class DecathlonProcessor {
         int minutes = Integer.parseInt(str.substring(0, i));
         return new BigDecimal(str.substring(i + 1))
                 .add(new BigDecimal(minuteToSecond(minutes)));
-    }
-
-    boolean isValidParameterFile(String parameterFile) {
-        return parameterFile != null
-                && !parameterFile.isEmpty()
-                && new File(parameterFile).exists();
     }
 
     void fillPlaces(List<ResultRecord> records) {
