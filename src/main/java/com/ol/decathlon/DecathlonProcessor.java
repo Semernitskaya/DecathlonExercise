@@ -30,6 +30,7 @@ public class DecathlonProcessor {
     private final static Logger LOG = Logger.getLogger(DecathlonProcessor.class.getName());
 
     public static final String RESULTS_SEPARATOR = ";";
+    public static final int RESULTS_LENGTH = 11;
 
     private final Comparator<ResultRecord> comparator = comparingInt(ResultRecord::getTotalResult);
 
@@ -37,6 +38,7 @@ public class DecathlonProcessor {
         try {
             ParameterCache parameterCache = new ParameterCache();
             parameterCache.initialize(parameterFile);
+
             TotalResultCalculator calculator = new TotalResultCalculator(parameterCache);
 
             List<ResultRecord> resultRecords = new CsvReader(inputFile, RESULTS_SEPARATOR, false)
@@ -47,7 +49,7 @@ public class DecathlonProcessor {
 
             String xmlString = new SimpleXmlConverter().convertToXmlString(new ResultRecordsWrapper(resultRecords));
             writeToOutput(xmlString, outputFile);
-        } catch (IOException  e) {
+        } catch (IOException e) {
             LOG.log(WARNING, "Something went wrong while processing decathlon data", e);
         }
     }
@@ -59,8 +61,9 @@ public class DecathlonProcessor {
     }
 
     Optional<ResultRecord> getResultRecord(String[] strings) {
-        if (strings.length < 11) {
-            LOG.warning(format("Can't extract results from string %s, invalid length", strings));
+        if (strings.length < RESULTS_LENGTH) {
+            LOG.warning(format("Can't extract results from string expected length %d, actual length %d",
+                    11, strings.length));
             return Optional.empty();
         }
         String name = strings[0];
@@ -79,7 +82,7 @@ public class DecathlonProcessor {
             results.put(DISTANCE_1500_M, getSeconds(strings[i++]));
             return Optional.of(new ResultRecord(name, results));
         } catch (Exception e) {
-            LOG.log(WARNING, format("Can't extract results from string %s", strings), e);
+            LOG.log(WARNING, format("Can't extract results from string for %s", name), e);
         }
         return Optional.empty();
     }
