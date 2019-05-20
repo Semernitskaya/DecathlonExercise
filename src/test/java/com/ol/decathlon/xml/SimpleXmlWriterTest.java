@@ -4,19 +4,21 @@ import com.ol.decathlon.data.Range;
 import com.ol.decathlon.data.ResultRecord;
 import com.ol.decathlon.data.ResultRecordsWrapper;
 import org.assertj.core.util.Lists;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.AbstractMap;
 
 import static com.ol.decathlon.EventType.DISTANCE_100_M;
 import static com.ol.decathlon.EventType.LONG_JUMP;
 import static com.ol.decathlon.ResultRecordUtil.getResultRecord;
+import static org.testng.Assert.assertEquals;
 
 /**
  * Created by Semernitskaya on 19.05.2019.
  */
-public class SimpleXmlConverterTest {
+public class SimpleXmlWriterTest {
 
     public static final String EXPECTED_STRING = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
             "<resultRecords>\n" +
@@ -45,7 +47,7 @@ public class SimpleXmlConverterTest {
             "</resultRecords>";
 
     @Test
-    public void testConvertToXmlString() {
+    public void testConvertToXmlString() throws IOException {
         ResultRecord record1 = getResultRecord(
                 new AbstractMap.SimpleEntry<>(DISTANCE_100_M, 11.756)
         );
@@ -58,8 +60,9 @@ public class SimpleXmlConverterTest {
         record2.setTotalResult(1500);
         record2.setPlaces(new Range(2, 4));
         ResultRecordsWrapper resultRecordsWrapper = new ResultRecordsWrapper(Lists.list(record1, record2));
-        String actualString = new SimpleXmlConverter().convertToXmlString(resultRecordsWrapper);
-        Assert.assertEquals(prepareString(actualString), prepareString(EXPECTED_STRING));
+        StringWriter stringWriter = new StringWriter();
+        new SimpleXmlWriter().writeAsXmlString(resultRecordsWrapper, () -> stringWriter);
+        assertEquals(prepareString(stringWriter.toString()), prepareString(EXPECTED_STRING));
     }
 
     String prepareString(String actualString) {

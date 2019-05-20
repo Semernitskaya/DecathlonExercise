@@ -5,9 +5,8 @@ import com.ol.decathlon.data.Range;
 import com.ol.decathlon.data.ResultRecord;
 import com.ol.decathlon.data.ResultRecordsWrapper;
 import com.ol.decathlon.parameter.ParameterCache;
-import com.ol.decathlon.xml.SimpleXmlConverter;
+import com.ol.decathlon.xml.SimpleXmlWriter;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -30,33 +29,28 @@ public class DecathlonProcessor {
     private final static Logger LOG = Logger.getLogger(DecathlonProcessor.class.getName());
 
     public static final String RESULTS_SEPARATOR = ";";
+
     public static final int RESULTS_LENGTH = 11;
 
-    private final Comparator<ResultRecord> comparator = comparingInt(ResultRecord::getTotalResult);
+    private final Comparator<ResultRecord> totalResultComparator = comparingInt(ResultRecord::getTotalResult);
 
     public void process(String inputFile, String outputFile, String parameterFile) {
         try {
             ParameterCache parameterCache = new ParameterCache();
             parameterCache.initialize(parameterFile);
-
             TotalResultCalculator calculator = new TotalResultCalculator(parameterCache);
 
             List<ResultRecord> resultRecords = new CsvReader(inputFile, RESULTS_SEPARATOR, false)
                     .readAll(strings -> getResultRecord(strings));
+
             resultRecords.forEach(record -> record.setTotalResult(calculator.calculateTotalResult(record)));
-            sort(resultRecords, comparator);
+            sort(resultRecords, totalResultComparator);
             fillPlaces(resultRecords);
 
-            String xmlString = new SimpleXmlConverter().convertToXmlString(new ResultRecordsWrapper(resultRecords));
-            writeToOutput(xmlString, outputFile);
+            new SimpleXmlWriter().writeAsXmlString(new ResultRecordsWrapper(resultRecords),
+                    () -> Files.newBufferedWriter(Paths.get(outputFile)));
         } catch (IOException e) {
             LOG.log(WARNING, "Something went wrong while processing decathlon data", e);
-        }
-    }
-
-    private void writeToOutput(String xmlString, String outputFile) throws IOException {
-        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile))) {
-            writer.write(xmlString);
         }
     }
 

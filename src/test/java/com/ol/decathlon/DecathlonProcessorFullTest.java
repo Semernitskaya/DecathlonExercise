@@ -53,6 +53,7 @@ public class DecathlonProcessorFullTest {
         List<String> expectedLines = Files.readAllLines(expectedPath);
         actualLines = trimLines(actualLines);
         expectedLines = trimLines(expectedLines);
+//        results in certain event types could follow in different order for the same person, so check without order
         Assertions.assertThat(actualLines).containsExactlyInAnyOrderElementsOf(expectedLines);
     }
 
